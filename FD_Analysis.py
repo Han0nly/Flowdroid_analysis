@@ -3,7 +3,8 @@ from collections import OrderedDict
 
 import xmltodict
 import os
-from settings import sinks_categories,sources_categories
+from settings import sinks_categories, sources_categories
+
 
 # class FDAnalysis:
 #     def __init__(self):
@@ -12,7 +13,8 @@ def leak_category(found):
     sink = 'none'
     for category in sinks_categories.keys():
         for sink_term in sinks_categories[category]:
-            if sink_term.lower() in found['Sink']['@Method'].lower() or sink_term.lower() in found['Sink']['@Statement'].lower():
+            if sink_term.lower() in found['Sink']['@Method'].lower() or sink_term.lower() in found['Sink'][
+                '@Statement'].lower():
                 sink = category
                 break
         if sink != 'none':
@@ -23,7 +25,8 @@ def leak_category(found):
         signal = 0
         for category in sources_categories.keys():
             for source_term in sources_categories[category]:
-                if source_term.lower() in found['Sources']['Source']['@Method'].lower() or source_term.lower() in found['Sources']['Source']['@Statement'].lower():
+                if source_term.lower() in found['Sources']['Source']['@Method'].lower() or source_term.lower() in \
+                        found['Sources']['Source']['@Statement'].lower():
                     signal = 1
                     sources.append(category)
                     break
@@ -34,7 +37,8 @@ def leak_category(found):
             signal = 0
             for category in sources_categories.keys():
                 for source_term in sources_categories[category]:
-                    if source_term.lower() in source['@Method'].lower() or source_term.lower() in source['@Statement'].lower():
+                    if source_term.lower() in source['@Method'].lower() or source_term.lower() in source[
+                        '@Statement'].lower():
                         sources.append(category)
                         break
                 if signal == 1:
@@ -46,14 +50,15 @@ def leak_category(found):
         return 'none'
     if len(sources) == 0:
         return 'none'
-    return ('%s:%s' % (set(sources),sink))
+    return ('%s:%s' % (set(sources), sink))
+
 
 if __name__ == '__main__':
     results = {}
     for root, dirs, files in os.walk('./FDA_Flowdroid'):
-        print("一共有多少个文件：",len(files))
+        print("一共有多少个文件：", len(files))
         for file in files:
-            file_fullpath = os.path.join(root,file)
+            file_fullpath = os.path.join(root, file)
             with open(file_fullpath) as f:
                 xml_str = f.readline()
                 # 将xml的字符串解析为字典类型
@@ -66,21 +71,20 @@ if __name__ == '__main__':
         all_result = results[app]['DataFlowResults']
         if 'Results' in all_result.keys():
             result_list = all_result['Results']['Result']
-            if isinstance(result_list,OrderedDict):
+            if isinstance(result_list, OrderedDict):
                 leak = leak_category(result_list)
                 if leak != 'none':
                     single_readable.append(leak)
-            elif isinstance(result_list,list):
+            elif isinstance(result_list, list):
                 for found in result_list:
                     leak = leak_category(found)
                     if leak != 'none':
                         single_readable.append(leak)
 
-        if len(single_readable) !=0:
+        if len(single_readable) != 0:
             readable_result[app] = list(set(single_readable))
 
     print(readable_result)
-
 
     statistics_sources = {}
     for i in readable_result.keys():
@@ -94,11 +98,10 @@ if __name__ == '__main__':
                 else:
                     already.append(item)
                     if item in statistics_sources.keys():
-                        statistics_sources[item] = statistics_sources[item]+1
+                        statistics_sources[item] = statistics_sources[item] + 1
                     else:
                         statistics_sources[item] = 1
-    print('These kinds of information are leaked:',statistics_sources)
-
+    print('These kinds of information are leaked:', statistics_sources)
 
     statistics_sinks = {}
     for i in readable_result.keys():
@@ -110,27 +113,22 @@ if __name__ == '__main__':
             else:
                 already.append(item)
                 if item in statistics_sinks.keys():
-                    statistics_sinks[item] = statistics_sinks[item]+1
+                    statistics_sinks[item] = statistics_sinks[item] + 1
                 else:
                     statistics_sinks[item] = 1
-    print('Sensitive Information leaks through these way:',statistics_sinks)
+    print('Sensitive Information leaks through these way:', statistics_sinks)
 
-    statistics_logs = []
-    for i in readable_result.keys():
-        for leak in readable_result[i]:
-            item = leak.split(':')[1]
-            if item == 'logs':
-                source = leak.split(':')[0][2:-2]
-                for i in source.split(','):
-                    i = i.strip().strip('\'')
-                    if i in statistics_logs:
-                        continue
-                    else:
-                        statistics_logs.append(i)
-
-    print('Logs leaks these information:',statistics_logs)
-
-
-
-
-
+    # statistics_logs = []
+    # for i in readable_result.keys():
+    #     for leak in readable_result[i]:
+    #         item = leak.split(':')[1]
+    #         if item == 'logs':
+    #             source = leak.split(':')[0][2:-2]
+    #             for i in source.split(','):
+    #                 i = i.strip().strip('\'')
+    #                 if i in statistics_logs:
+    #                     continue
+    #                 else:
+    #                     statistics_logs.append(i)
+    #
+    # print('Logs leaks these information:', statistics_logs)
