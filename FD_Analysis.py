@@ -58,7 +58,7 @@ if __name__ == '__main__':
     for root, dirs, files in os.walk('./FDA_Flowdroid'):
         print("一共有多少个文件：", len(files))
         for file in files:
-            if files[-3:] == "xml":
+            if file[-3:] == "xml":
                 file_fullpath = os.path.join(root, file)
                 with open(file_fullpath) as f:
                     xml_str = f.readline()
