@@ -58,12 +58,13 @@ if __name__ == '__main__':
     for root, dirs, files in os.walk('./FDA_Flowdroid'):
         print("一共有多少个文件：", len(files))
         for file in files:
-            file_fullpath = os.path.join(root, file)
-            with open(file_fullpath) as f:
-                xml_str = f.readline()
-                # 将xml的字符串解析为字典类型
-                jsonstr = xmltodict.parse(xml_str)
-                results[file[:-4]] = jsonstr
+            if files[-3:] == "xml":
+                file_fullpath = os.path.join(root, file)
+                with open(file_fullpath) as f:
+                    xml_str = f.readline()
+                    # 将xml的字符串解析为字典类型
+                    jsonstr = xmltodict.parse(xml_str)
+                    results[file[:-4]] = jsonstr
     readable_result = {}
     for app in results.keys():
         # print(app)
